@@ -89,3 +89,4 @@ with col1:
     st.pyplot(fig1)
 with col2:
    st.pyplot(fig2)
+
