@@ -4,7 +4,7 @@ import random
 import datetime
 import matplotlib.pyplot as plt
 
-st.title("💧 Water Quality Dashboard with Infographics and Icons")
+st.markdown("<h1 style='text-align:center; font-size:48px;'>💧 Water Quality Dashboard</h1>", unsafe_allow_html=True)
 
 # Generate fake sensor data
 def generate_data(num_readings=50):
@@ -20,7 +20,7 @@ data = generate_data()
 good_threshold = st.sidebar.slider("Good max microplastics", 0, 600, 200)
 moderate_threshold = st.sidebar.slider("Moderate max microplastics", 0, 600, 400)
 
-# Determine status
+# Assign status
 def get_status(v):
     if v < good_threshold:
         return "Good"
@@ -31,35 +31,43 @@ def get_status(v):
 
 data["Status"] = data["Microplastics"].apply(get_status)
 
-# Colors and icon URLs for statuses
-colors = {"Good": "green", "Moderate": "orange", "Contaminated": "red"}
-icons = {
-    "Good": "https://cdn-icons-png.flaticon.com/512/414/414969.png",         # green water drop icon
-    "Moderate": "https://cdn-icons-png.flaticon.com/512/1828/1828884.png",    # orange warning icon
-    "Contaminated": "https://cdn-icons-png.flaticon.com/512/564/564619.png"   # red danger icon
-}
-
 # Latest reading and status
 latest_value = data["Microplastics"].iloc[-1]
 latest_status = get_status(latest_value)
 
-# Show latest status with icon
-col_icon, col_text = st.columns([1, 6])
-with col_icon:
-    st.image(icons[latest_status], width=50)
-with col_text:
-    st.markdown(f"<h2 style='color: {colors[latest_status]};'>Latest Water Status: {latest_status}</h2>", unsafe_allow_html=True)
-    st.write(f"Latest Microplastic Reading: {latest_value}")
+# Decide Safe or Unsafe
+if latest_status in ["Good", "Moderate"]:
+    display_status = "Safe"
+    bg_color = "green"
+else:
+    display_status = "Unsafe"
+    bg_color = "red"
 
-# Infographic pie chart
+# 🔹 Make status card bigger
+st.markdown(
+    f"""
+    <div style="background-color:{bg_color};
+                padding:40px;
+                border-radius:20px;
+                text-align:center;
+                margin-bottom:30px;">
+        <h1 style="color:white; font-size:50px; margin:0;">Latest Water Status: {display_status}</h1>
+        <h2 style="color:white; font-size:40px; margin:10px 0 0;">Microplastic Reading: {latest_value}</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# Infographic style pie chart for status distribution
 status_counts = data["Status"].value_counts()
 sizes = status_counts.values
 labels = status_counts.index
+colors = {"Good": "green", "Moderate": "orange", "Contaminated": "red"}
 color_map = [colors[label] for label in labels]
 
 fig1, ax1 = plt.subplots()
 explode = [0.05] * len(sizes)
-wedges, texts, autotexts = ax1.pie(
+ax1.pie(
     sizes,
     explode=explode,
     labels=labels,
@@ -68,11 +76,11 @@ wedges, texts, autotexts = ax1.pie(
     shadow=True,
     startangle=90,
     wedgeprops=dict(edgecolor='w'),
-    textprops=dict(color="black", fontsize=10)
+    textprops=dict(color="black", fontsize=12)
 )
 ax1.set(aspect="equal", title="Water Quality Status Distribution")
 
-# Area chart for microplastic levels
+# Plot area chart for microplastic levels over time
 fig2, ax2 = plt.subplots()
 ax2.fill_between(data['Time'], data['Microplastics'], color='skyblue', alpha=0.5)
 ax2.plot(data['Time'], data['Microplastics'], color='SteelBlue')
@@ -84,9 +92,9 @@ ax2.set_title('Microplastic Levels Over Time')
 ax2.legend()
 plt.xticks(rotation=45)
 
+# Display both charts
 col1, col2 = st.columns(2)
 with col1:
     st.pyplot(fig1)
 with col2:
-   st.pyplot(fig2)
-
+    st.pyplot(fig2)
